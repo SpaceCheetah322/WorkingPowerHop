@@ -6,19 +6,18 @@ game_started = False
 
 def setup():
     global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img
-    start_screen = loadImage("start_screen.png")  # Make sure this file exists in your project
+    start_screen = loadImage("start_screen.png")
     game_started = False
 
     size(800, 600)
     frameRate(30)
     frog_img = loadImage("Frogger_Frog_Front_Two.gif")
     fly_one = Fly()
-    player = Player(width/2-20, 436, 40, 3, frog_img)
+    player = Player(width/2, 536, 40, 3, frog_img)
     print(fly_one.frame_1)
     score = 0
     fly_respawn_timer = 0
     fly_respawn_delay = 0
-    lives = 3
     
     p1 = Powerup("c")  
 
@@ -33,14 +32,6 @@ def draw():
 
     # --- Your actual game code starts here ---
 
-    if (p1 != None): # This prevents the program from trying to display it after it gets deleted.
-        p1.display() 
-        if (p1.collides_with(p1) == True):
-                score += 1
-                p1 = None
-
-    
-    background(2, 33, 84)
     background(255)
     #street
     fill(107, 103, 110)
@@ -74,7 +65,14 @@ def draw():
     # Yellow dashes higher line
     for i in range(7):
         rect(i * width * 0.15, height * 0.65, dash_width, 5)
-    
+        
+
+    if p1 is not None:
+        p1.display()
+        if p1.collides_with(player):
+            player.lives += 1
+            p1 = None
+
     if fly_one is not None:
         fly_one.move()
         if player.collides_with(fly_one):
@@ -89,6 +87,7 @@ def draw():
     fill(0)
     textSize(24)
     text("Score: " + str(score), 10, 30)
+    text("Lives: " + str(player.lives), 10, 50)
 
     player.display()
 
