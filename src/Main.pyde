@@ -6,7 +6,7 @@ from Car import Car
 game_started = False
 
 def setup():
-    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img
+    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
     
     start_screen = loadImage("start_screen.png")
     game_started = False
@@ -21,13 +21,18 @@ def setup():
     score = 0
     fly_respawn_timer = 0
     fly_respawn_delay = 0
-    p1 = Powerup("c") 
+    p1 = Powerup("c")
     
-    car = Car(0, 520, direction="right", speed=4, vehicle_type="car")
-
+    cars = []
+    
+    cars.append(Car(-10, 520, direction="right", speed=4, vehicle_type="car"))
+    cars.append(Car(800, 470, direction="left", speed=2, vehicle_type="truck"))
+    cars.append(Car(-10, 425, direction="right", speed=9, vehicle_type="car"))
+    cars.append(Car(-10, 380, direction="right", speed=7, vehicle_type="truck"))
+    cars.append(Car(800, 335, direction="left", speed=5, vehicle_type="car"))
 
 def draw():
-    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, game_started, car, car_img, back_img
+    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, game_started, car, car_img, back_img, cars
 
     if not game_started:
         background(0)
@@ -38,10 +43,12 @@ def draw():
 
     image(back_img, 0, 0, width, height)
     
-    car.move()
-    car.display()
-
-        
+    for car in cars:
+        car.move()
+        car.display()
+        if car.check_collision(player):
+            player.lives -= 1
+    
 
     if p1 is not None:
         p1.display()
