@@ -7,10 +7,10 @@ class Car:
         self.speed = speed
         self.vehicle_type = vehicle_type
 
-        image_file = "Car.png" if self.vehicle_type == "car" else "Truck.png"
+        image_file = "Car.png" if self.vehicle_type == "car" else "Frogger_Red_Truck.gif"
         self.image = loadImage(image_file)
 
-        scale = 1 if self.vehicle_type == "car" else 0.3
+        scale = 1 if self.vehicle_type == "car" else 1
         self.width = self.image.width * scale
         self.height = self.image.height * scale
         self.image.resize(int(self.width), int(self.height))
