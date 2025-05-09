@@ -6,7 +6,8 @@ from Car import Car
 game_started = False
 
 def setup():
-    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
+    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay
+    global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
     
     start_screen = loadImage("start_screen.png")
     game_started = False
