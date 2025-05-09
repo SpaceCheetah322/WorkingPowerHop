@@ -2,7 +2,7 @@ class Player:
     def __init__(self, x, y, speed, lives, img):
         self.x = x
         self.y = y
-        self.speed = 60
+        self.speed = 46.1
         self.lives = lives
         self.img = img
         self.width = img.width
@@ -19,8 +19,8 @@ class Player:
             self.y += self.speed
     
         # Keep the player inside the screen
-        self.x = constrain(self.x, 0, width - self.width)
-        self.y = constrain(self.y, 0, height - self.height)
+        self.x = constrain(self.x, 0, width - (self.width-12))
+        self.y = constrain(self.y, 0, height - (self.height-12))
 
 
     def display(self):
