@@ -1,70 +1,46 @@
 from Player import Player
 from Fly import Fly
 from Powerup import Powerup
+from Car import Car
 
 game_started = False
 
 def setup():
-    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img
+    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img
+    
     start_screen = loadImage("start_screen.png")
     game_started = False
 
     size(800, 600)
     frameRate(30)
+    
     frog_img = loadImage("Frogger_Frog_Front_Two.gif")
+    back_img = loadImage("backdrop.png")
     fly_one = Fly()
-    player = Player(width/2, 536, 40, 3, frog_img)
-    print(fly_one.frame_1)
+    player = Player(width/2, 548, 40, 3, frog_img)
     score = 0
     fly_respawn_timer = 0
     fly_respawn_delay = 0
+    p1 = Powerup("c") 
     
-    p1 = Powerup("c")  
+    car = Car(0, 520, direction="right", speed=4, vehicle_type="car")
 
 
 def draw():
-    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, game_started, car, car_img
+    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, p1, p2, p3, lives, game_started, car, car_img, back_img
 
     if not game_started:
         background(0)
         image(start_screen, 0, 0, width, height)
-        return  # Skip the game logic until started
+        return
 
-    # --- Your actual game code starts here ---
+    # --- Actual game code starts here ---
 
-    background(255)
-    #street
-    fill(107, 103, 110)
-    rect(0, height * 0.8, width, height * 0.1)  # Adjust for screen size
-    rect(0, height * 0.6, width, height * 0.1)
+    image(back_img, 0, 0, width, height)
+    
+    car.move()
+    car.display()
 
-    # Water blue
-    fill(85, 153, 242)
-    rect(0, 0, width, height * 0.5)
-
-    # Grass green
-    fill(16, 125, 45)
-    rect(0, height * 0.9, width, height * 0.1)
-    rect(0, height * 0.7, width, height * 0.1)
-    rect(0, height * 0.5, width, height * 0.1)
-
-    # Safe goals level ended
-    rect(0, 0, width * 0.125, height * 0.1)
-    rect(width * 0.225, 0, width * 0.125, height * 0.1)
-    rect(width * 0.45, 0, width * 0.125, height * 0.1)
-    rect(width * 0.675, 0, width * 0.125, height * 0.1)
-    rect(width * 0.9, 0, width * 0.125, height * 0.1)
-
-    # Yellow dashes
-    fill(232, 229, 30)
-    dash_width = width * 0.075  # Set width of the dashes relative to canvas size
-    rect(0, height * 0.85, dash_width, 5)
-    for i in range(1, 7):
-        rect(i * width * 0.15, height * 0.85, dash_width, 5)
-
-    # Yellow dashes higher line
-    for i in range(7):
-        rect(i * width * 0.15, height * 0.65, dash_width, 5)
         
 
     if p1 is not None:
@@ -72,6 +48,9 @@ def draw():
         if p1.collides_with(player):
             player.lives += 1
             p1 = None
+    
+    if car.check_collision(player):
+        player.lives -= 1
 
     if fly_one is not None:
         fly_one.move()
