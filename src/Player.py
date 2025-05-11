@@ -27,9 +27,11 @@ class Player:
         image(self.img, self.x, self.y)
         
     def collides_with(self, other):
+        buffer_x = 10  # horizontal padding
+        buffer_y = 10   # vertical padding
         return (
-            self.x < other.x + other.width and
-            self.x + self.width > other.x and
-            self.y < other.y + other.height and
-            self.y + self.height > other.y
+            self.x + buffer_x < other.x + other.width and
+            self.x + self.width - buffer_x > other.x and
+            self.y + buffer_y < other.y + other.height and
+            self.y + self.height - buffer_y > other.y
         )
