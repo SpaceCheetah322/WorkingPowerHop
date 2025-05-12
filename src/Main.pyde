@@ -7,14 +7,17 @@ from Log import Log
 keyPressedOnce = False
 
 def setup():
-    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay
+    global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, won, win_screen
     global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
     global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
+    global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
     
     start_screen = loadImage("start_screen.png")
-    game_over_image = loadImage("game_over_image.png")
+    game_over_image = loadImage("game_over_image.png") 
+    win_screen = loadImage("win_screen.png")
     game_started = False
     game_over = False
+    won = False
 
     size(800, 600)
     frameRate(30)
@@ -65,11 +68,24 @@ def setup():
     cars.append(Car(950, 330, direction="left", speed=5, vehicle_type="car"))
     cars.append(Car(1100, 330, direction="left", speed=5, vehicle_type="car"))
     
+    lily_pads = [90, 240, 390, 540, 690]  # X positions for lily pads
+    occupied_pads = [False] * len(lily_pads)
+    
+    player1 = Player(width/2, 548, 40, 3, frog_img)
+    player = player1
+    currentFrog = player1
+    
+    
+    player2 = player3 = player4 = player5 = None
+
+    
 
 def draw():
-    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay
+    global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, won
     global p1, p2, p3, lives, game_started, car, car_img, back_img, cars
     global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
+    global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
+    
     
     if game_over:
         image(game_over_image, 0, 0, width, height)
@@ -78,6 +94,9 @@ def draw():
     if not game_started:
         background(0)
         image(start_screen, 0, 0, width, height)
+        return
+    if won:
+        image(win_screen, 0, 0, width, height)
         return
 
     image(back_img, 0, 0, width, height)
@@ -153,7 +172,7 @@ def draw():
                 break  # Only move with one log
  
         # If player is in water (not on a log) and in water zone, die
-        if not on_log and 0 < player.y < 230:  # Adjust the Y range to match your river area
+        if not on_log and 35 < player.y < 265:
             saved_lives = player.lives - 1
             if saved_lives <= 0:
                 game_over = True
@@ -162,6 +181,29 @@ def draw():
                 player_dead = True
                 death_timer = frameCount
                 player = None
+    
+    if currentFrog.y <= 35:
+        # Snap to nearest lily pad
+        closest_index = min(range(len(lily_pads)), key=lambda i: abs(currentFrog.x - lily_pads[i]))
+        currentFrog.x = lily_pads[closest_index]
+        currentFrog.y = 40
+        occupied_pads[closest_index] = True
+    
+        # Check if all pads are full
+        if all(occupied_pads):
+            won = True
+            return
+        else:
+            # Respawn a new frog at the start position
+            saved_lives = player.lives
+            player = Player(width/2, 548, 40, saved_lives, frog_img)
+            currentFrog = player
+
+
+                
+    for i in range(len(lily_pads)):
+        if occupied_pads[i]:
+            image(frog_img, lily_pads[i] - 20, 40, 40, 40)
 
 
     
