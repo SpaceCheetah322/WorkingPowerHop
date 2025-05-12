@@ -2,16 +2,19 @@ from Player import Player
 from Fly import Fly
 from Powerup import Powerup
 from Car import Car
+from Log import Log
 
 keyPressedOnce = False
 
 def setup():
     global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay
     global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
-    global player_dead, death_timer, saved_lives
+    global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
     
     start_screen = loadImage("start_screen.png")
+    game_over_image = loadImage("game_over_image.png")
     game_started = False
+    game_over = False
 
     size(800, 600)
     frameRate(30)
@@ -25,11 +28,22 @@ def setup():
     fly_respawn_delay = 0
     p1 = Powerup("c")
     
+    
+    
     cars = []
-    lanes = []
+    logs = []
     
     player_dead = False
     death_timer = 0
+    
+
+    logs.append(Log(-310, -10, "right", speed=5))
+    logs.append(Log(900, 35, "left", speed=5))
+    logs.append(Log(-310, 80, "right", speed=5))
+    logs.append(Log(-310, 125, "right", speed=5))
+    logs.append(Log(900, 170, "left", speed=5))
+
+
     
     cars.append(Car(-10, 515, direction="right", speed=4, vehicle_type="car"))
     cars.append(Car(-160, 515, direction="right", speed=4, vehicle_type="car"))
@@ -54,7 +68,12 @@ def setup():
 
 def draw():
     global player, fly_one, score, fly_respawn_timer, fly_respawn_delay
-    global p1, p2, p3, lives, game_started, car, car_img, back_img, cars, player_dead, death_timer, saved_lives
+    global p1, p2, p3, lives, game_started, car, car_img, back_img, cars
+    global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
+    
+    if game_over:
+        image(game_over_image, 0, 0, width, height)
+        return
 
     if not game_started:
         background(0)
@@ -63,20 +82,25 @@ def draw():
 
     image(back_img, 0, 0, width, height)
     
-
-    # bucket cars by lane
+    
+    for log in logs:
+        log.move()
+        log.display()
+    
+    # Bucketing cars
     for c in cars:
         c.move()
         c.display()
         if not player_dead and player is not None and c.check_collision(player):
-            saved_lives = player.lives - 1  # subtract one life BEFORE player is removed
-            player_dead = True
-            death_timer = frameCount
-            player = None
+            saved_lives = player.lives - 1
+            if saved_lives <= 0:
+                game_over = True
+                player = None
+            else:
+                player_dead = True
+                death_timer = frameCount
+                player = None
             break
-
-
-
 
 
     if p1 is not None and player is not None:
@@ -91,9 +115,9 @@ def draw():
             fly_respawn_timer = frameCount
             fly_respawn_delay = int(random(270, 330))
 
-    else:
-        if frameCount - fly_respawn_timer > fly_respawn_delay:
-            fly_one = Fly()
+    elif fly_one is None and frameCount - fly_respawn_timer > fly_respawn_delay:
+        fly_one = Fly()
+
 
     fill(0)
     textSize(24)
@@ -102,13 +126,42 @@ def draw():
         text("Lives: " + str(player.lives), 10, 50)
         player.display()
     else:
-        text("Lives: 0", 10, 50)
+        text("Lives: " + str(saved_lives), 10, 50)
         
         # Handle respawn
     if player_dead and frameCount - death_timer > 60:  # Wait 2 seconds (30 fps x 2)
-        player = Player(width/2, 548, 40, 3, frog_img)
-        player.lives -= 1
+        player = Player(width/2, 548, 40, saved_lives, frog_img)
         player_dead = False
+        
+        # Show the powerup and fly
+    if p1 is not None:
+        p1.display()
+    
+    if fly_one is not None:
+        fly_one.move()
+           
+    if player is not None:
+        on_log = False
+        for log in logs:
+            if log.check_collision(player):
+                on_log = True
+                # Move the player with the log
+                if log.direction == "right":
+                    player.x += log.speed
+                else:
+                    player.x -= log.speed
+                break  # Only move with one log
+ 
+        # If player is in water (not on a log) and in water zone, die
+        if not on_log and 0 < player.y < 230:  # Adjust the Y range to match your river area
+            saved_lives = player.lives - 1
+            if saved_lives <= 0:
+                game_over = True
+                player = None
+            else:
+                player_dead = True
+                death_timer = frameCount
+                player = None
 
 
     
