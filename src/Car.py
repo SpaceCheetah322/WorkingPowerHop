@@ -2,7 +2,7 @@ class Car:
     def __init__(self, x, y, direction="right", speed=5, vehicle_type="car", scale=1, spacing=150):
         self.x = x
         self.y = y
-        self.direction = direction
+        self.direction = direction 
         self.speed = speed
         self.vehicle_type = vehicle_type
         self.spacing = spacing
