@@ -7,6 +7,7 @@ class Player:
         self.img = img
         self.width = img.width
         self.height = img.height
+        self.scale = 1  # Add this line
 
     def move(self, key_code):
         if key_code == LEFT or key == 'a':
@@ -17,18 +18,16 @@ class Player:
             self.y -= self.speed
         elif key_code == DOWN or key == 's':
             self.y += self.speed
-    
-        # Keep the player inside the screen
-        self.x = constrain(self.x, 0, width - (self.width-12))
-        self.y = constrain(self.y, 0, height - (self.height-12))
 
+        self.x = constrain(self.x, 0, width - (self.width - 12))
+        self.y = constrain(self.y, 0, height - (self.height - 12))
 
     def display(self):
         image(self.img, self.x, self.y)
-        
+
     def collides_with(self, other):
-        buffer_x = 10  # horizontal padding
-        buffer_y = 10   # vertical padding
+        buffer_x = 10
+        buffer_y = 10
         return (
             self.x + buffer_x < other.x + other.width and
             self.x + self.width - buffer_x > other.x and
