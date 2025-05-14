@@ -102,9 +102,7 @@ def draw():
     image(back_img, 0, 0, width, height)
     
     
-    for log in logs:
-        log.move()
-        log.display()
+    
     
     # Bucketing cars
     for c in cars:
@@ -203,7 +201,11 @@ def draw():
                 
     for i in range(len(lily_pads)):
         if occupied_pads[i]:
-            image(frog_img, lily_pads[i] - 20, 40, 40, 40)
+            image(frog_img, lily_pads[i] - 8, 0, 65, 65)
+            
+    for log in logs:
+        log.move()
+        log.display()
 
 
     
