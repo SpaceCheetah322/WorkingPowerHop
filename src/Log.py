@@ -56,5 +56,3 @@ class Log:
                         return True
 
         return False
-
-
