@@ -20,8 +20,8 @@ class Powerup:
     # Constructor
     def __init__(self, type):
         self.type = type
-        self.x = random.randint(0, 500) # 500 is temporary! Replace with game length.
-        self.y = random.randint(0, 500) # 500 is temporary! Replace with game height.
+        self.x = random.randint(200, 600) # 500 is temporary! Replace with game length.
+        self.y = random.randint(200, 600) # 500 is temporary! Replace with game height.
         self.width = 30
         self.height = 30
         self.time_slow = loadImage("Frogger_Clock_Powerup.gif") # Shows up as a blue icon with a frozen clock.
