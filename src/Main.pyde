@@ -3,6 +3,7 @@ from Fly import Fly
 from Powerup import Powerup
 from Car import Car
 from Log import Log
+from Timer import Timer
 
 keyPressedOnce = False
 
@@ -11,6 +12,8 @@ def setup():
     global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
     global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
     global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
+    global game_timer, timer_duration, p1_respawn_timer, p2_respawn_timer, p3_respawn_timer, p1_respawn_delay, p2_respawn_delay, p3_respawn_delay
+    global car_original_speeds, log_original_speeds, slowdown_active, slowdown_start_frame, slowdown_duration
     
     start_screen = loadImage("start_screen.png")
     game_over_image = loadImage("game_over_image.png") 
@@ -30,6 +33,15 @@ def setup():
     fly_respawn_timer = 0
     fly_respawn_delay = 0
     p1 = Powerup("c")
+    p2 = Powerup("b")
+    p3 = Powerup("a")
+    
+    car_original_speeds = []
+    log_original_speeds = []
+    slowdown_active = False
+    slowdown_start_frame = 0
+    slowdown_duration = 300  # ~5 seconds at 60 FPS
+
     
     
     
@@ -68,7 +80,7 @@ def setup():
     cars.append(Car(950, 330, direction="left", speed=5, vehicle_type="car"))
     cars.append(Car(1100, 330, direction="left", speed=5, vehicle_type="car"))
     
-    lily_pads = [90, 240, 390, 540, 690]  # X positions for lily pads
+    lily_pads = [105, 255, 405, 555, 705]  # X positions for lily pads
     occupied_pads = [False] * len(lily_pads)
     
     player1 = Player(width/2, 548, 40, 3, frog_img)
@@ -77,6 +89,19 @@ def setup():
     
     
     player2 = player3 = player4 = player5 = None
+    
+    timer_duration = 90000  # 30 seconds, for example
+    game_timer = Timer(timer_duration)
+    game_timer.start()
+    
+    p1_respawn_timer = 0
+    p2_respawn_timer = 0
+    p3_respawn_timer = 0
+    
+    p1_respawn_delay = 0
+    p2_respawn_delay = 0
+    p3_respawn_delay = 0
+
 
     
 
@@ -85,6 +110,8 @@ def draw():
     global p1, p2, p3, lives, game_started, car, car_img, back_img, cars
     global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
     global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
+    global car_original_speeds, log_original_speeds, slowdown_active, slowdown_start_frame, slowdown_duration
+    global game_timer, timer_duration, p1_respawn_timer, p2_respawn_timer, p3_respawn_timer, p1_respawn_delay, p2_respawn_delay, p3_respawn_delay
     
     
     if game_over:
@@ -104,7 +131,17 @@ def draw():
     
     
     
-    # Bucketing cars
+    # Check if time has run out
+    if game_timer.done() and player is not None:
+        saved_lives = player.lives - 1
+        if saved_lives <= 0:
+            game_over = True
+            player = None
+        else:
+            player_dead = True
+            death_timer = frameCount
+            player = None
+
     for c in cars:
         c.move()
         c.display()
@@ -120,10 +157,68 @@ def draw():
             break
 
 
+    # Powerup p1 (extra life)
     if p1 is not None and player is not None:
         if p1.collides_with(player):
             player.lives += 1
             p1 = None
+            p1_respawn_timer = frameCount
+            p1_respawn_delay = int(random(300, 450))  # 10–15 seconds at 30fps
+    
+    elif p1 is None and frameCount - p1_respawn_timer > p1_respawn_delay:
+        p1 = Powerup("c")
+
+            
+    # Powerup p2 (score)
+    if p2 is not None and player is not None:
+        if p2.collides_with(player):
+            score += 10
+            p2 = None
+            p2_respawn_timer = frameCount
+            p2_respawn_delay = int(random(300, 450))
+    
+    elif p2 is None and frameCount - p2_respawn_timer > p2_respawn_delay:
+        p2 = Powerup("b")
+    
+    # Powerup p3 (extra life)
+    if p3 is not None and player is not None:
+        if p3.collides_with(player):
+            print("Powerup 'a' collected: Slowing down cars and logs...")
+            
+            car_original_speeds = [c.speed for c in cars]
+            log_original_speeds = [l.speed for l in logs]
+    
+            for c in cars:
+                print("Original speed of car at y=" + str(c.y) + ": " + str(c.speed))
+                c.speed *= 0.5
+            
+            for l in logs:
+                print("Original speed of log at y=" + str(l.y) + ": " + str(l.speed))
+                l.speed *= 0.5
+    
+            slowdown_active = True
+            slowdown_start_frame = frameCount
+    
+            p3 = None
+            p3_respawn_timer = frameCount
+            p3_respawn_delay = int(random(300, 450))
+    
+    elif p3 is None and frameCount - p3_respawn_timer > p3_respawn_delay:
+        p3 = Powerup("a")
+        
+    if slowdown_active and frameCount - slowdown_start_frame > slowdown_duration:
+        print("Slowdown expired: Restoring speeds...")
+        for i in range(len(cars)):
+            cars[i].speed = car_original_speeds[i]
+        for i in range(len(logs)):
+            logs[i].speed = log_original_speeds[i]
+        
+        slowdown_active = False
+
+
+
+
+
 
     if fly_one is not None and player is not None:
         if player.collides_with(fly_one):
@@ -149,10 +244,19 @@ def draw():
     if player_dead and frameCount - death_timer > 60:  # Wait 2 seconds (30 fps x 2)
         player = Player(width/2, 548, 40, saved_lives, frog_img)
         player_dead = False
+        game_timer = Timer(timer_duration)
+        game_timer.start()
+
         
         # Show the powerup and fly
     if p1 is not None:
         p1.display()
+        
+    if p2 is not None:
+        p2.display()
+        
+    if p3 is not None:
+        p3.display()
     
     if fly_one is not None:
         fly_one.move()
@@ -170,7 +274,7 @@ def draw():
                 break  # Only move with one log
  
         # If player is in water (not on a log) and in water zone, die
-        if not on_log and 35 < player.y < 265:
+        if not on_log and 35 < player.y < 265: #35
             saved_lives = player.lives - 1
             if saved_lives <= 0:
                 game_over = True
@@ -180,40 +284,64 @@ def draw():
                 death_timer = frameCount
                 player = None
     
-    if currentFrog.y <= 35:
-        # Snap to nearest lily pad
-        closest_index = min(range(len(lily_pads)), key=lambda i: abs(currentFrog.x - lily_pads[i]))
-        currentFrog.x = lily_pads[closest_index]
-        currentFrog.y = 40
-        occupied_pads[closest_index] = True
+    if player is not None and player.y <= 35:
+        closest_index = min(range(len(lily_pads)), key=lambda i: abs(player.x - lily_pads[i]))
+        snap_distance = abs(player.x - lily_pads[closest_index])
+        snap_radius = 40  # Radius within which a frog can land on a lily pad
     
-        # Check if all pads are full
-        if all(occupied_pads):
-            won = True
-            return
+        if snap_distance <= snap_radius and not occupied_pads[closest_index]:
+            # Successfully landed on a lily pad
+            player.x = lily_pads[closest_index]
+            player.y = 40
+            occupied_pads[closest_index] = True
+    
+            if all(occupied_pads):
+                won = True
+            else:
+                saved_lives = player.lives
+                player = Player(width / 2, 548, 40, saved_lives, frog_img)
+                currentFrog = player
         else:
-            # Respawn a new frog at the start position
-            saved_lives = player.lives
-            player = Player(width/2, 548, 40, saved_lives, frog_img)
-            currentFrog = player
-
+            # Missed lily pad (i.e., landed on grass)
+            saved_lives = player.lives - 1 if player is not None else 0
+            if saved_lives <= 0:
+                game_over = True
+                player = None
+            else:
+                player_dead = True
+                death_timer = frameCount
+                player = None
 
                 
     for i in range(len(lily_pads)):
         if occupied_pads[i]:
-            image(frog_img, lily_pads[i] - 8, 0, 65, 65)
+            image(frog_img, lily_pads[i] - 22, 0, 65, 65)
             
     for log in logs:
         log.move()
         log.display()
-
-
+        
+        
+    # Timer bar display
+    # Timer circle display
+    remaining_time = max(0, timer_duration - (millis() - game_timer.saved_time))
+    angle = map(remaining_time, 0, timer_duration, 0, TWO_PI)
     
+    cx = width - 30  # x position of circle
+    cy = 26          # y position of circle
+    radius = 20      # size of the timer circle
+    
+    # Background circle (full)
+    fill(34, 97, 0)
+    noStroke()
+    ellipse(cx, cy, radius * 2, radius * 2)
+    
+    # Remaining time arc
+    fill(68, 185, 4)
+    arc(cx, cy, radius * 2, radius * 2, -HALF_PI, -HALF_PI + angle, PIE)
+
     if player is not None:
         player.display()
-
-
-
 
 def keyPressed():
     global keyPressedOnce
