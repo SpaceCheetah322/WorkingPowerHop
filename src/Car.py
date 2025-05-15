@@ -64,4 +64,3 @@ class Car:
                         return True
     
         return False
-
