@@ -9,11 +9,12 @@ keyPressedOnce = False
 
 def setup():
     global player, frog_img, fly_one, score, fly_respawn_timer, fly_respawn_delay, won, win_screen
-    global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars
-    global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
-    global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
+    global p1, p2, p3, lives, start_screen, game_started, car, car_img, back_img, cars, heart
+    global player_dead, death_timer, saved_lives, game_over, game_over_image, logs, last_known_lives
+    global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads, pixelFont
     global game_timer, timer_duration, p1_respawn_timer, p2_respawn_timer, p3_respawn_timer, p1_respawn_delay, p2_respawn_delay, p3_respawn_delay
     global car_original_speeds, log_original_speeds, slowdown_active, slowdown_start_frame, slowdown_duration
+    global level, base_car_speeds, base_log_speeds
     
     start_screen = loadImage("start_screen.png")
     game_over_image = loadImage("game_over_image.png") 
@@ -43,6 +44,8 @@ def setup():
     slowdown_duration = 300  # ~5 seconds at 60 FPS
 
     
+    pixelFont = createFont("PressStart2P-Regular.ttf", 16)  # Replace with your font file name
+    textFont(pixelFont)
     
     
     cars = []
@@ -57,6 +60,8 @@ def setup():
     logs.append(Log(-310, 80, "right", speed=5))
     logs.append(Log(-310, 125, "right", speed=5))
     logs.append(Log(900, 170, "left", speed=5))
+    
+
 
 
     
@@ -101,17 +106,41 @@ def setup():
     p1_respawn_delay = 0
     p2_respawn_delay = 0
     p3_respawn_delay = 0
+    
+    heart = loadImage("Frogger_Life_Icon.gif")
+    last_known_lives = 0
+    
+    base_car_speeds = [c.speed for c in cars]
+    base_log_speeds = [l.speed for l in logs]
 
+def level_up():
+    global level, occupied_pads, player, currentFrog, cars, logs
+    level += 1
 
+    # reset the pads
+    for i in range(len(occupied_pads)):
+        occupied_pads[i] = False
+
+    # reset the frog
+    player = Player(width/2, 548, 40, player.lives, frog_img)
+    currentFrog = player
+
+    # rescale every vehicle
+    speed_multiplier = 1 + 0.1 * (level - 1)  # +10% per level
+    for i, c in enumerate(cars):
+        c.speed = base_car_speeds[i] * speed_multiplier
+    for i, l in enumerate(logs):
+        l.speed = base_log_speeds[i] * speed_multiplier
     
 
 def draw():
     global player, fly_one, score, fly_respawn_timer, fly_respawn_delay, won
-    global p1, p2, p3, lives, game_started, car, car_img, back_img, cars
+    global p1, p2, p3, lives, game_started, car, car_img, back_img, cars, heart, last_known_lives
     global player_dead, death_timer, saved_lives, game_over, game_over_image, logs
     global currentFrog, player1, player2, player3, player4, player5, lily_pads, occupied_pads
     global car_original_speeds, log_original_speeds, slowdown_active, slowdown_start_frame, slowdown_duration
     global game_timer, timer_duration, p1_respawn_timer, p2_respawn_timer, p3_respawn_timer, p1_respawn_delay, p2_respawn_delay, p3_respawn_delay
+    global level, base_car_speeds, base_log_speeds, cars
     
     
     if game_over:
@@ -127,6 +156,15 @@ def draw():
         return
 
     image(back_img, 0, 0, width, height)
+    
+    
+    
+    if player != None:
+        last_known_lives = player.lives
+    
+    for i in range(last_known_lives):
+        image(heart, 770 - i * 25, 560)
+
     
     
     
@@ -232,13 +270,9 @@ def draw():
 
 
     fill(0)
-    textSize(24)
+    textSize(9)
     text("Score: " + str(score), 10, 30)
-    if player is not None:
-        text("Lives: " + str(player.lives), 10, 50)
-        player.display()
-    else:
-        text("Lives: " + str(saved_lives), 10, 50)
+
         
         # Handle respawn
     if player_dead and frameCount - death_timer > 60:  # Wait 2 seconds (30 fps x 2)
@@ -246,6 +280,10 @@ def draw():
         player_dead = False
         game_timer = Timer(timer_duration)
         game_timer.start()
+        
+    for log in logs:
+        log.move()
+        log.display()
 
         
         # Show the powerup and fly
@@ -296,7 +334,7 @@ def draw():
             occupied_pads[closest_index] = True
     
             if all(occupied_pads):
-                won = True
+                level_up()
             else:
                 saved_lives = player.lives
                 player = Player(width / 2, 548, 40, saved_lives, frog_img)
@@ -317,9 +355,7 @@ def draw():
         if occupied_pads[i]:
             image(frog_img, lily_pads[i] - 22, 0, 65, 65)
             
-    for log in logs:
-        log.move()
-        log.display()
+
         
         
     # Timer bar display
