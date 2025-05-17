@@ -1,18 +1,3 @@
-# Written by Katelyn
-# NOTES: Display and collision functioning! Powerup should appear in a random location when called. Effects usable(?)
-# Might end up having to resize graphics.
-"""
-Powerups:
-a. Slow time
-b. Point X2
-c. Extra life
-Use the letters each powerup is assigned when calling them in, eg. 'health = Powerup("c")'
-More might be added in the future; these are some basic ones that should be easy to put in.
-
-Other Ideas:
-d. Luck boost (Increased chances of powerup/fly spawning?)
-e. Long Leap (Jump further. Not sure if this is as helpful to the player as it seems.)
-"""
 import time
 import random
 
@@ -20,8 +5,8 @@ class Powerup:
     # Constructor
     def __init__(self, type):
         self.type = type
-        self.x = random.randint(200, 600) # 500 is temporary! Replace with game length.
-        self.y = random.randint(200, 600) # 500 is temporary! Replace with game height.
+        self.x = random.randint(100, 700)
+        self.y = random.randint(100, 500) 
         self.width = 30
         self.height = 30
         self.time_slow = loadImage("Frogger_Clock_Powerup.gif") # Shows up as a blue icon with a frozen clock.
