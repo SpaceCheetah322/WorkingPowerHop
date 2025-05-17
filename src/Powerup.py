@@ -7,8 +7,8 @@ class Powerup:
         self.type = type
         self.x = random.randint(100, 700)
         self.y = random.randint(100, 500) 
-        self.width = 30
-        self.height = 30
+        self.width = 10
+        self.height = 10
         self.time_slow = loadImage("Frogger_Clock_Powerup.gif") # Shows up as a blue icon with a frozen clock.
         self.double_points = loadImage("Frogger_Point_Powerup.gif") # Shows up as a yellow icon witih a four-pointed star. A bit off-center, nothing to be done about it though.
         self.health_bonus = loadImage("Frogger_Health_Powerup.gif") # Shows up as a red icon with a medical (+) sign.
