@@ -13,14 +13,20 @@ class Log:
         self.height = self.image.height * self.scale
 
     def move(self):
+        cycle = 800 + self.width   # total distance a log should travel each loop
+
         if self.direction == "right":
             self.x += self.speed
             if self.x > 800:
-                self.x = self.start_x
+                # jump *back* by exactly `cycle` pixels
+                self.x -= cycle
+        
         elif self.direction == "left":
             self.x -= self.speed
             if self.x + self.width < 0:
-                self.x = self.start_x
+                # jump *forward* by exactly `cycle` pixels
+                self.x += cycle
+
 
     def display(self):
         imageMode(CORNER)
